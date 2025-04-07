@@ -1,5 +1,5 @@
 from utils import *
-from prompt import ACTION_PROMPT, CHECH_MESSAGE
+from prompt import ACTION_PROMPT, CHECH_MESSAGE, gen_prompt
 
 class PlanningAgent:
     def __init__(self, plan_client):
@@ -61,7 +61,7 @@ class PlanningAgent:
         """
         generate the planning instruction
         """
-        prompt = ACTION_PROMPT + f"Your task is: {self.gen_prompt(user)}\n\n"
+        prompt = ACTION_PROMPT + f"Your task is: {gen_prompt(user)}\n\n"
         
         if len(self.history) > self.HISTORY_CUT_OFF:
             history_str = "\n\n".join(f"[{i+1}] {item}" for i, item in enumerate(self.history[-self.HISTORY_CUT_OFF:]))
@@ -83,20 +83,3 @@ class PlanningAgent:
         plan_str = output.split("Action:")[0].strip()
         action_str = output.split("Action:")[1].strip()
         return plan_str, action_str
-
-    def gen_prompt(self, user):
-        return f'''Respond to {user} messages within the interface. User messages appear in white boxes, while your responses will be displayed in green boxes.
-
-## Action Sequence
-1. Locate and **click** on {user}'s profile that has a red notification dot.
-2. Extract all recent user messages (all content in white boxes) that appear after the LAST green box.
-3. Compile these messages into a single query and **throw** it.
-4. Send the response to the user.
-5. **Finish** the task.
-
-## Important Guidelines
-- Messages on screen typically alternate between white boxes (user) and green boxes (responses).
-- Only extract and process white box messages that appear AFTER the most recent green box.
-- If multiple unread white box messages exist after the last green box, combine them into one comprehensive query.
-- Maintain the same language used by the user in your compiled query.
-- Ignore any content in green boxes or white boxes that appear before the last green box.'''
