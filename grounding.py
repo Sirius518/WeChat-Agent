@@ -20,7 +20,6 @@ class GroundingAgent:
         call the grounding model to locate the element,
         return x, y, there_are_none
         """
-        self.message_history.append({"role": "user", "content": instruction})
         instruction, model = self.paper_guide(instruction)
 
         if model == self.paper_model:
@@ -31,7 +30,7 @@ class GroundingAgent:
                 temperature=0.8,
             )
         else:
-            messages = get_full_message(self.message_history)
+            messages = get_llm_messages(instruction)
             completion = self.grounding_client.chat.completions.create(
                 model=self.normal_model,
                 messages=messages,
@@ -41,7 +40,6 @@ class GroundingAgent:
         
         # Try each response until we find valid coordinates
         output_text = completion.choices[0].message.content
-        self.message_history.append({"role": "assistant", "content": output_text})
 
         return output_text
     

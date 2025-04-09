@@ -36,9 +36,16 @@ class PCAgent:
             while True:
                 screenshot = get_screenshot()
                 user_to_reply = self.if_new_message(screenshot)
-                print(f"User to reply: {user_to_reply}")
+                print("action:", user_to_reply)
                 if user_to_reply:
-                    self.reply_message(screenshot, user_to_reply)
+                    self.execute_action(user_to_reply)
+                    output = f"check message agent\nAction: {user_to_reply}"
+                    self.after_action(output)
+
+                    group_or_single = self.check_user(screenshot)
+                    print("user:", group_or_single)
+                    self.reply_message(screenshot, group_or_single)
+
                 else:
                     time.sleep(2)  # sleep for 5 minutes
 
@@ -46,13 +53,20 @@ class PCAgent:
             print(f"Error: {e}")
             self.exit(1)
 
+    def check_user(self, screenshot):
+        check_user = self.planning_agent.group_or_single_user(screenshot)
+        if 'group' in check_user:
+            return True
+        else:
+            return False
+
     def if_new_message(self, screenshot):
         if_message = self.planning_agent.check_message(screenshot)
         if 'None' in if_message:
             return False
         else:
-            return if_message.strip('"')  # remove the double quotes
-
+            return if_message.strip('"').strip(" ")
+        
     def reply_message(self, screenshot, user):
         try:
             while True:

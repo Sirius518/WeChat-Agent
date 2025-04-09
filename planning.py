@@ -1,5 +1,5 @@
 from utils import *
-from prompt import ACTION_PROMPT, CHECH_MESSAGE, gen_prompt
+from prompt import ACTION_PROMPT, CHECH_MESSAGE, gen_prompt, CHECH_USER
 
 class PlanningAgent:
     def __init__(self, plan_client):
@@ -11,16 +11,6 @@ class PlanningAgent:
         self.HISTORY_CUT_OFF = 10
         
     def get_plan(self, screenshot, user):
-        """
-        get the next plan
-        Args:
-            screenshot: the screenshot
-            task_description: task description
-            retry_click_elements: the list of elements that failed to click before
-        Returns:
-            plan_str: plan description
-            action_str: specific action
-        """
         instruction = self.get_plan_instruction(user)
                 
         base64_image = encode_image(screenshot)
@@ -83,3 +73,16 @@ class PlanningAgent:
         plan_str = output.split("Action:")[0].strip()
         action_str = output.split("Action:")[1].strip()
         return plan_str, action_str
+    
+    def group_or_single_user(self, screenshot):
+        base64_image = encode_image(screenshot)
+        message = get_vlm_messages(CHECH_USER, base64_image)
+        completion = self.plan_client.chat.completions.create(
+            model=self.plan_model,
+            messages=message,
+            max_tokens=512,
+            temperature=0.2
+        )
+        output_text = completion.choices[0].message.content
+        print(f"User: {output_text}")
+        return output_text
